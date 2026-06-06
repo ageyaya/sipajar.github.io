@@ -1,0 +1,1587 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SIPAJAR — Sistem Informasi Pajak</title>
+<!-- Font diembed langsung — 100% offline -->
+<style>
+:root {
+  --navy:   #0F2D5E;
+  --blue:   #1A5FA5;
+  --blue2:  #2E7DD4;
+  --blue-l: #DBEAFE;
+  --teal:   #0F6E56;
+  --teal-l: #D1FAE5;
+  --amber:  #92400E;
+  --amber-l:#FEF3C7;
+  --red:    #991B1B;
+  --red-l:  #FEE2E2;
+  --purple: #4C1D95;
+  --purp-l: #EDE9FE;
+  --gray:   #64748B;
+  --dgray:  #1E293B;
+  --light:  #F8FAFF;
+  --border: #E2E8F0;
+  --white:  #FFFFFF;
+  --sidebar-w: 230px;
+  --hdr-h: 56px;
+  --font: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+  --font-display: Georgia, 'Book Antiqua', 'Palatino Linotype', serif;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 14px; }
+body { font-family: var(--font); background: #F0F4F8; color: var(--dgray); min-height: 100vh; display: flex; flex-direction: column; }
+
+/* ── HEADER ── */
+.app-header {
+  position: fixed; top:0; left:0; right:0; height:var(--hdr-h); z-index:100;
+  background: var(--navy);
+  display: flex; align-items: center; gap: 16px; padding: 0 20px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.25);
+}
+.app-logo { font-family: var(--font-display); font-size: 1.5rem; color: #fff; letter-spacing: 0.02em; }
+.app-logo span { color: #7DD3FC; font-style: italic; }
+.app-tagline { font-size: 0.75rem; color: #93C5FD; font-weight: 300; margin-left: 4px; }
+.hdr-right { margin-left: auto; display:flex; gap:10px; align-items:center; }
+.hdr-badge { background: rgba(255,255,255,0.12); color: #fff; font-size: 0.7rem; padding: 3px 10px; border-radius: 20px; font-weight: 500; border: 1px solid rgba(255,255,255,0.2); }
+
+/* ── SIDEBAR ── */
+.sidebar {
+  position: fixed; top: var(--hdr-h); left: 0; bottom: 0;
+  width: var(--sidebar-w); background: var(--navy);
+  display: flex; flex-direction: column; overflow-y: auto;
+  border-right: 1px solid rgba(255,255,255,0.08);
+  z-index: 90;
+}
+.sidebar-section { padding: 16px 12px 8px; font-size: 0.65rem; color: #64748B; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; }
+.nav-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 16px; cursor: pointer; transition: all 0.15s;
+  color: #94A3B8; font-size: 0.85rem; font-weight: 400;
+  border-left: 3px solid transparent; margin: 1px 0;
+  user-select: none;
+}
+.nav-item:hover { background: rgba(255,255,255,0.06); color: #fff; }
+.nav-item.active { background: rgba(59,130,246,0.18); color: #60A5FA; border-left-color: #3B82F6; font-weight: 600; }
+.nav-icon { font-size: 1rem; width: 20px; text-align: center; flex-shrink:0; }
+.nav-badge { margin-left: auto; background: #3B82F6; color:#fff; font-size:0.65rem; padding: 1px 6px; border-radius: 10px; }
+
+/* ── MAIN CONTENT ── */
+.main { margin-left: var(--sidebar-w); margin-top: var(--hdr-h); padding: 24px; min-height: calc(100vh - var(--hdr-h)); }
+
+/* ── PAGES ── */
+.page { display: none; animation: fadeIn 0.2s ease; }
+.page.active { display: block; }
+@keyframes fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+
+/* ── PAGE TITLE ── */
+.page-title { font-family: var(--font-display); font-size: 1.65rem; color: var(--navy); margin-bottom: 4px; }
+.page-subtitle { color: var(--gray); font-size: 0.8rem; margin-bottom: 20px; }
+
+/* ── STAT CARDS ── */
+.stat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 14px; margin-bottom: 24px; }
+.stat-card {
+  background: var(--white); border-radius: 12px; padding: 16px 18px;
+  border: 1px solid var(--border);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  position: relative; overflow: hidden;
+}
+.stat-card::before { content:''; position:absolute; top:0;right:0; width:60px;height:60px; border-radius:0 12px 0 60px; opacity:0.08; }
+.stat-card.blue::before { background:var(--blue); }
+.stat-card.teal::before { background:var(--teal); }
+.stat-card.amber::before { background:var(--amber); }
+.stat-card.red::before { background:var(--red); }
+.stat-card.purple::before { background:var(--purple); }
+.stat-label { font-size: 0.72rem; color: var(--gray); font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
+.stat-value { font-size: 1.35rem; font-weight: 700; line-height: 1; }
+.stat-card.blue .stat-value { color: var(--blue); }
+.stat-card.teal .stat-value { color: var(--teal); }
+.stat-card.amber .stat-value { color: var(--amber); }
+.stat-card.red .stat-value { color: var(--red); }
+.stat-card.purple .stat-value { color: var(--purple); }
+.stat-sub { font-size: 0.7rem; color: var(--gray); margin-top: 4px; }
+
+/* ── PANELS ── */
+.panel {
+  background: var(--white); border-radius: 12px;
+  border: 1px solid var(--border);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  margin-bottom: 20px; overflow: hidden;
+}
+.panel-header {
+  padding: 13px 18px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 10px;
+  background: linear-gradient(to right, var(--navy), var(--blue));
+}
+.panel-header.teal { background: linear-gradient(to right, #064E3B, var(--teal)); }
+.panel-header.amber { background: linear-gradient(to right, #78350F, var(--amber)); }
+.panel-header.red { background: linear-gradient(to right, #7F1D1D, var(--red)); }
+.panel-header.purple { background: linear-gradient(to right, #2E1065, var(--purple)); }
+.panel-header.gray { background: linear-gradient(to right, #334155, #475569); }
+.panel-title { font-weight: 600; color: #fff; font-size: 0.9rem; }
+.panel-body { padding: 18px; }
+
+/* ── FORM ── */
+.form-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; }
+.form-group { display: flex; flex-direction: column; gap: 5px; }
+.form-group.full { grid-column: 1 / -1; }
+.form-group.half { grid-column: span 2; }
+label { font-size: 0.75rem; font-weight: 600; color: var(--dgray); }
+label .req { color: var(--red); margin-left: 2px; }
+input, select, textarea {
+  padding: 8px 11px; border: 1.5px solid var(--border); border-radius: 7px;
+  font-family: var(--font); font-size: 0.85rem; color: var(--dgray);
+  background: #FAFBFF; transition: border-color 0.15s, box-shadow 0.15s;
+  outline: none;
+}
+input:focus, select:focus, textarea:focus { border-color: var(--blue2); box-shadow: 0 0 0 3px rgba(46,125,212,0.12); background: #fff; }
+input[readonly] { background: var(--light); color: var(--gray); cursor: default; border-style: dashed; }
+.input-rp { position: relative; }
+.input-rp::before { content:'Rp'; position:absolute; left:10px; top:50%; transform:translateY(-50%); font-size:0.8rem; color:var(--gray); font-weight:500; z-index:1; }
+.input-rp input { padding-left: 32px; }
+.input-pct { position: relative; }
+.input-pct::after { content:'%'; position:absolute; right:10px; top:50%; transform:translateY(-50%); font-size:0.8rem; color:var(--gray); }
+.input-pct input { padding-right: 28px; }
+
+/* ── RESULT BOX ── */
+.result-box {
+  background: linear-gradient(135deg, var(--navy) 0%, var(--blue) 100%);
+  border-radius: 10px; padding: 16px 20px; margin-top: 16px;
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px;
+}
+.result-item { }
+.result-label { font-size: 0.7rem; color: rgba(255,255,255,0.65); font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 3px; }
+.result-value { font-size: 1.1rem; font-weight: 700; color: #fff; }
+.result-value.big { font-size: 1.4rem; color: #FCD34D; }
+.result-value.green { color: #6EE7B7; }
+.result-value.red-c { color: #FCA5A5; }
+
+/* ── BUTTONS ── */
+.btn-row { display: flex; gap: 10px; margin-top: 18px; flex-wrap: wrap; }
+.btn {
+  padding: 9px 20px; border-radius: 8px; font-family: var(--font);
+  font-size: 0.85rem; font-weight: 600; cursor: pointer; border: none;
+  display: inline-flex; align-items: center; gap: 6px; transition: all 0.15s;
+  white-space: nowrap;
+}
+.btn-primary { background: var(--navy); color: #fff; box-shadow: 0 2px 6px rgba(15,45,94,0.3); }
+.btn-primary:hover { background: var(--blue); transform: translateY(-1px); }
+.btn-success { background: var(--teal); color: #fff; box-shadow: 0 2px 6px rgba(15,110,86,0.3); }
+.btn-success:hover { background: #0A5441; transform: translateY(-1px); }
+.btn-warning { background: var(--amber); color: #fff; }
+.btn-warning:hover { background: #78350F; transform: translateY(-1px); }
+.btn-danger { background: var(--red); color: #fff; }
+.btn-danger:hover { background: #7F1D1D; }
+.btn-ghost { background: transparent; color: var(--gray); border: 1.5px solid var(--border); }
+.btn-ghost:hover { background: var(--light); color: var(--dgray); }
+.btn-print { background: #7C3AED; color: #fff; }
+.btn-print:hover { background: #5B21B6; }
+.btn-sm { padding: 5px 12px; font-size: 0.75rem; }
+
+/* ── TABLE ── */
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+th {
+  background: var(--navy); color: #fff; padding: 9px 12px; text-align: left;
+  font-weight: 600; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+td { padding: 9px 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: var(--light); }
+.td-num { text-align: right; font-variant-numeric: tabular-nums; font-weight: 500; }
+.td-center { text-align: center; }
+.badge {
+  display: inline-flex; align-items: center; padding: 2px 9px; border-radius: 20px;
+  font-size: 0.7rem; font-weight: 600; white-space: nowrap;
+}
+.badge-blue { background: var(--blue-l); color: var(--blue); }
+.badge-teal { background: var(--teal-l); color: var(--teal); }
+.badge-amber { background: var(--amber-l); color: var(--amber); }
+.badge-red { background: var(--red-l); color: var(--red); }
+.badge-purple { background: var(--purp-l); color: var(--purple); }
+
+.empty-state { text-align: center; padding: 40px; color: var(--gray); }
+.empty-icon { font-size: 2.5rem; margin-bottom: 8px; }
+
+/* ── DIVIDER ── */
+.divider { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
+
+/* ── MULTI-ITEM TABLE (PPh 23 / PPN) ── */
+.item-table { width:100%; border-collapse:collapse; margin-top:12px; }
+.item-table th { background:var(--navy); color:#fff; padding:7px 10px; font-size:0.72rem; text-align:center; }
+.item-table td { padding:6px 6px; border-bottom:1px solid var(--border); }
+.item-table input, .item-table select { padding:5px 8px; font-size:0.8rem; width:100%; }
+.item-table .td-del { text-align:center; }
+.btn-del { background:var(--red-l); color:var(--red); border:none; border-radius:5px; padding:3px 8px; cursor:pointer; font-size:0.75rem; }
+
+/* ── TOAST ── */
+.toast-container { position:fixed; bottom:24px; right:24px; z-index:9999; display:flex; flex-direction:column; gap:8px; }
+.toast {
+  background:var(--dgray); color:#fff; padding:10px 16px; border-radius:8px;
+  font-size:0.82rem; box-shadow:0 4px 16px rgba(0,0,0,0.2);
+  animation: slideUp 0.3s ease; max-width:300px;
+  border-left: 3px solid var(--teal);
+}
+.toast.error { border-left-color: var(--red); }
+@keyframes slideUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+
+/* ── PRINT ── */
+@media print {
+  .sidebar, .app-header, .btn-row, .nav-item, .toast-container { display:none!important; }
+  .main { margin:0; padding:0; }
+  .page { display:block!important; }
+  .page:not(.active) { display:none!important; }
+  .print-area { display:block!important; }
+}
+
+/* ── MODAL ── */
+.modal-overlay {
+  display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5);
+  z-index:500; align-items:center; justify-content:center;
+}
+.modal-overlay.open { display:flex; }
+.modal {
+  background:#fff; border-radius:12px; padding:24px; max-width:720px; width:95%;
+  max-height:90vh; overflow-y:auto;
+  box-shadow:0 20px 60px rgba(0,0,0,0.3);
+  animation: fadeIn 0.2s ease;
+}
+.modal-title { font-family:var(--font-display); font-size:1.3rem; color:var(--navy); margin-bottom:16px; }
+
+/* ── DASHBOARD CHART ── */
+.chart-bar-wrap { display:flex; flex-direction:column; gap:8px; }
+.chart-bar-row { display:flex; align-items:center; gap:10px; }
+.chart-bar-label { font-size:0.75rem; color:var(--gray); width:80px; flex-shrink:0; }
+.chart-bar-track { flex:1; background:var(--border); border-radius:4px; height:20px; overflow:hidden; }
+.chart-bar-fill { height:100%; border-radius:4px; display:flex; align-items:center; padding-left:8px; font-size:0.7rem; color:#fff; font-weight:600; transition:width 0.6s ease; }
+.chart-bar-val { font-size:0.75rem; font-weight:600; color:var(--dgray); width:110px; text-align:right; }
+
+/* TARIF TABLE */
+.tarif-grid { display:grid; grid-template-columns:1fr 80px 1fr 80px; gap:0; }
+.tarif-hdr { background:var(--navy); color:#fff; padding:7px 10px; font-size:0.72rem; font-weight:600; text-transform:uppercase; }
+.tarif-row { display:contents; }
+.tarif-cell { padding:7px 10px; font-size:0.8rem; border-bottom:1px solid var(--border); }
+.tarif-cell.rate { font-weight:700; color:var(--red); text-align:center; }
+.tarif-cell:nth-child(4n+1), .tarif-cell:nth-child(4n+2) { background:#fff; }
+.tarif-cell:nth-child(4n+3), .tarif-cell:nth-child(4n+4) { background:var(--light); }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="app-header">
+  <div class="app-logo">SIPA<span>JAR</span></div>
+  <div class="app-tagline">Sistem Informasi Pajak Terpadu</div>
+  <div class="hdr-right">
+    <span class="hdr-badge">📋 PP 58/2023 & PMK 168/2023</span>
+    <span class="hdr-badge">UU HPP No.7/2021</span>
+  </div>
+</header>
+
+<!-- SIDEBAR -->
+<nav class="sidebar">
+  <div class="sidebar-section">Menu Utama</div>
+  <div class="nav-item active" onclick="showPage('dashboard')"><span class="nav-icon">🏠</span> Dashboard</div>
+
+  <div class="sidebar-section">Perhitungan Pajak</div>
+  <div class="nav-item" onclick="showPage('pph21')"><span class="nav-icon">👤</span> PPh Pasal 21</div>
+  <div class="nav-item" onclick="showPage('pph22')"><span class="nav-icon">🛒</span> PPh Pasal 22</div>
+  <div class="nav-item" onclick="showPage('pph23')"><span class="nav-icon">📄</span> PPh Pasal 23</div>
+  <div class="nav-item" onclick="showPage('ppn')"><span class="nav-icon">🧾</span> PPN</div>
+
+  <div class="sidebar-section">Data & Laporan</div>
+  <div class="nav-item" onclick="showPage('riwayat')"><span class="nav-icon">📊</span> Riwayat Transaksi <span class="nav-badge" id="badge-count">0</span></div>
+  <div class="nav-item" onclick="showPage('laporan')"><span class="nav-icon">🖨️</span> Cetak Laporan</div>
+
+  <div class="sidebar-section">Referensi</div>
+  <div class="nav-item" onclick="showPage('tarif')"><span class="nav-icon">📘</span> Tabel Tarif</div>
+</nav>
+
+<!-- MAIN -->
+<main class="main">
+
+<!-- ═══════════════ DASHBOARD ═══════════════ -->
+<div class="page active" id="page-dashboard">
+  <div class="page-title">Dashboard</div>
+  <div class="page-subtitle">Ringkasan perhitungan pajak yang telah diinput</div>
+
+  <div class="stat-grid">
+    <div class="stat-card blue">
+      <div class="stat-label">Total Transaksi</div>
+      <div class="stat-value" id="ds-total-trx">0</div>
+      <div class="stat-sub">Semua jenis pajak</div>
+    </div>
+    <div class="stat-card blue">
+      <div class="stat-label">PPh 21 Final</div>
+      <div class="stat-value" id="ds-pph21">Rp 0</div>
+      <div class="stat-sub" id="ds-pph21-n">0 transaksi</div>
+    </div>
+    <div class="stat-card teal">
+      <div class="stat-label">PPh 22</div>
+      <div class="stat-value" id="ds-pph22">Rp 0</div>
+      <div class="stat-sub" id="ds-pph22-n">0 transaksi</div>
+    </div>
+    <div class="stat-card amber">
+      <div class="stat-label">PPh 23</div>
+      <div class="stat-value" id="ds-pph23">Rp 0</div>
+      <div class="stat-sub" id="ds-pph23-n">0 transaksi</div>
+    </div>
+    <div class="stat-card purple">
+      <div class="stat-label">PPN</div>
+      <div class="stat-value" id="ds-ppn">Rp 0</div>
+      <div class="stat-sub" id="ds-ppn-n">0 transaksi</div>
+    </div>
+    <div class="stat-card red">
+      <div class="stat-label">Total Pajak Keseluruhan</div>
+      <div class="stat-value" id="ds-grand">Rp 0</div>
+      <div class="stat-sub">Semua jenis</div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-header"><span class="panel-title">📊 Proporsi Pajak per Jenis</span></div>
+    <div class="panel-body">
+      <div class="chart-bar-wrap" id="chart-bars">
+        <div style="color:var(--gray);font-size:0.85rem;">Belum ada data. Mulai input pajak untuk melihat grafik.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-header"><span class="panel-title">📋 Transaksi Terbaru</span></div>
+    <div class="panel-body">
+      <div class="table-wrap">
+        <table id="tbl-recent">
+          <thead><tr><th>Tanggal</th><th>Jenis</th><th>Nama</th><th>Bruto (Rp)</th><th>Pajak (Rp)</th></tr></thead>
+          <tbody id="tbody-recent"><tr><td colspan="5" class="empty-state">Belum ada transaksi</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ PPh 21 ═══════════════ -->
+<div class="page" id="page-pph21">
+  <div class="page-title">PPh Pasal 21 — Honorarium Final</div>
+  <div class="page-subtitle">Pemotongan PPh 21 Final atas Honor dari APBN/APBD | PP 58/2023 & PMK 168/2023</div>
+
+  <div class="panel">
+    <div class="panel-header"><span class="panel-title">📝 Form Input Pemotongan PPh 21 Final</span></div>
+    <div class="panel-body">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Tanggal <span class="req">*</span></label>
+          <input type="date" id="p21-tgl" value="">
+        </div>
+        <div class="form-group">
+          <label>Nama Penerima <span class="req">*</span></label>
+          <input type="text" id="p21-nama" placeholder="Dr. Ahmad Fauzi, M.Si">
+        </div>
+        <div class="form-group">
+          <label>NIP / NIK</label>
+          <input type="text" id="p21-nip" placeholder="198001012005011001">
+        </div>
+        <div class="form-group">
+          <label>NPWP</label>
+          <input type="text" id="p21-npwp" placeholder="12.345.678.9-000.000">
+        </div>
+        <div class="form-group">
+          <label>Uraian Kegiatan <span class="req">*</span></label>
+          <input type="text" id="p21-kegiatan" placeholder="Narasumber Seminar Nasional">
+        </div>
+        <div class="form-group">
+          <label>Instansi / Unit Kerja</label>
+          <input type="text" id="p21-instansi" placeholder="LPPM Universitas Mataram">
+        </div>
+        <div class="form-group">
+          <label>Golongan / Status <span class="req">*</span></label>
+          <select id="p21-golongan" onchange="hitungPPh21()">
+            <option value="">-- Pilih Golongan --</option>
+            <option value="0|PNS Gol I/II">PNS / TNI / Polri Gol I & II (0%)</option>
+            <option value="0.05|PNS Gol III">PNS / TNI / Polri Gol III (5%)</option>
+            <option value="0.15|PNS Gol IV">PNS / TNI / Polri Gol IV (15%)</option>
+            <option value="0.05|Non-PNS NPWP">Non-PNS / Umum (punya NPWP) (5%)</option>
+            <option value="0.06|Non-PNS NoNPWP">Non-PNS / Umum (tanpa NPWP) (6%)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Honor Bruto (Rp) <span class="req">*</span></label>
+          <div class="input-rp"><input type="text" id="p21-bruto" placeholder="0" oninput="fmtInput(this);hitungPPh21()" inputmode="numeric"></div>
+        </div>
+        <div class="form-group">
+          <label>Tarif PPh 21 Final</label>
+          <div class="input-pct"><input type="text" id="p21-tarif" readonly></div>
+        </div>
+        <div class="form-group">
+          <label>PPh 21 Terutang (Rp)</label>
+          <div class="input-rp"><input type="text" id="p21-pph" readonly></div>
+        </div>
+        <div class="form-group">
+          <label>Honor Diterima Bersih (Rp)</label>
+          <div class="input-rp"><input type="text" id="p21-neto" readonly></div>
+        </div>
+      </div>
+
+      <div class="result-box" id="p21-result" style="display:none">
+        <div class="result-item">
+          <div class="result-label">Honor Bruto</div>
+          <div class="result-value" id="r21-bruto">–</div>
+        </div>
+        <div class="result-item">
+          <div class="result-label">Tarif Final</div>
+          <div class="result-value" id="r21-tarif">–</div>
+        </div>
+        <div class="result-item">
+          <div class="result-label">PPh 21 Dipotong</div>
+          <div class="result-value big" id="r21-pph">–</div>
+        </div>
+        <div class="result-item">
+          <div class="result-label">Honor Bersih</div>
+          <div class="result-value green" id="r21-neto">–</div>
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-success" onclick="simpanPPh21()">💾 Simpan & Catat</button>
+        <button class="btn btn-ghost" onclick="resetForm('pph21')">🔄 Reset</button>
+        <button class="btn btn-print" onclick="cetakBuktiPotong('pph21')">🖨️ Cetak Bukti Potong</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-header"><span class="panel-title">📋 Daftar PPh 21 Tersimpan</span></div>
+    <div class="panel-body">
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Tgl</th><th>Nama</th><th>Kegiatan</th><th>Golongan</th><th>Tarif</th><th class="td-num">Bruto (Rp)</th><th class="td-num">PPh 21 (Rp)</th><th class="td-num">Neto (Rp)</th><th>Aksi</th></tr></thead>
+          <tbody id="tbody-pph21"><tr><td colspan="9" class="empty-state"><div class="empty-icon">📭</div>Belum ada data</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ PPh 22 ═══════════════ -->
+<div class="page" id="page-pph22">
+  <div class="page-title">PPh Pasal 22</div>
+  <div class="page-subtitle">Pajak atas Pembelian Barang oleh Bendahara Pemerintah | PMK 41/PMK.010/2022</div>
+
+  <div class="panel">
+    <div class="panel-header panel-header teal"><span class="panel-title">📝 Form Perhitungan PPh 22</span></div>
+    <div class="panel-body">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Tanggal Transaksi <span class="req">*</span></label>
+          <input type="date" id="p22-tgl">
+        </div>
+        <div class="form-group">
+          <label>No. Invoice / Kwitansi</label>
+          <input type="text" id="p22-inv" placeholder="INV-2026-001">
+        </div>
+        <div class="form-group">
+          <label>Nama Rekanan / Penjual <span class="req">*</span></label>
+          <input type="text" id="p22-rekanan" placeholder="PT. Supplier Unram">
+        </div>
+        <div class="form-group">
+          <label>NPWP Rekanan</label>
+          <input type="text" id="p22-npwp" placeholder="12.345.678.9-000.000">
+        </div>
+        <div class="form-group">
+          <label>Jenis Barang</label>
+          <input type="text" id="p22-barang" placeholder="Alat Tulis Kantor">
+        </div>
+        <div class="form-group">
+          <label>Pemungut Pajak</label>
+          <select id="p22-pemungut" onchange="hitungPPh22()">
+            <option value="0.015">Bendahara Pemerintah (1,5%)</option>
+            <option value="0.015">BUMN (1,5%)</option>
+            <option value="0.0025">Industri Semen (0,25%)</option>
+            <option value="0.003">Migas (0,3%)</option>
+            <option value="0.025">Impor (API Umum 2,5%)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Harga Pembelian (Rp) <span class="req">*</span></label>
+          <div class="input-rp"><input type="text" id="p22-harga" placeholder="0" oninput="fmtInput(this);hitungPPh22()" inputmode="numeric"></div>
+        </div>
+        <div class="form-group">
+          <label>Harga Sudah Termasuk PPN?</label>
+          <select id="p22-inkl" onchange="hitungPPh22()">
+            <option value="ya">Ya (sudah termasuk PPN 11%)</option>
+            <option value="tidak">Tidak (harga belum termasuk PPN)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Punya NPWP?</label>
+          <select id="p22-npwp-ada" onchange="hitungPPh22()">
+            <option value="ya">Ya (tarif normal)</option>
+            <option value="tidak">Tidak (tarif × 200%)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>DPP (Dasar Pengenaan Pajak)</label>
+          <div class="input-rp"><input type="text" id="p22-dpp" readonly></div>
+        </div>
+        <div class="form-group">
+          <label>Tarif PPh 22</label>
+          <div class="input-pct"><input type="text" id="p22-tarif" readonly></div>
+        </div>
+        <div class="form-group">
+          <label>PPh 22 Terutang (Rp)</label>
+          <div class="input-rp"><input type="text" id="p22-pph" readonly></div>
+        </div>
+        <div class="form-group">
+          <label>PPN (11% × DPP)</label>
+          <div class="input-rp"><input type="text" id="p22-ppn" readonly></div>
+        </div>
+        <div class="form-group">
+          <label>Total Dibayar (DPP + PPh + PPN)</label>
+          <div class="input-rp"><input type="text" id="p22-total" readonly></div>
+        </div>
+      </div>
+
+      <div class="result-box" id="p22-result" style="display:none; background: linear-gradient(135deg, #064E3B, var(--teal))">
+        <div class="result-item"><div class="result-label">DPP</div><div class="result-value" id="r22-dpp">–</div></div>
+        <div class="result-item"><div class="result-label">Tarif</div><div class="result-value" id="r22-tarif">–</div></div>
+        <div class="result-item"><div class="result-label">PPh 22 Terutang</div><div class="result-value big" id="r22-pph">–</div></div>
+        <div class="result-item"><div class="result-label">PPN (11%)</div><div class="result-value" id="r22-ppn">–</div></div>
+        <div class="result-item"><div class="result-label">Total Bayar</div><div class="result-value green" id="r22-total">–</div></div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-success" onclick="simpanPPh22()">💾 Simpan</button>
+        <button class="btn btn-ghost" onclick="resetForm('pph22')">🔄 Reset</button>
+        <button class="btn btn-print" onclick="cetakBuktiPotong('pph22')">🖨️ Cetak</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-header teal"><span class="panel-title">📋 Daftar PPh 22 Tersimpan</span></div>
+    <div class="panel-body">
+      <div class="table-wrap">
+        <table><thead><tr><th>Tgl</th><th>Invoice</th><th>Rekanan</th><th>Barang</th><th class="td-num">DPP (Rp)</th><th>Tarif</th><th class="td-num">PPh 22 (Rp)</th><th class="td-num">PPN (Rp)</th><th>Aksi</th></tr></thead>
+          <tbody id="tbody-pph22"><tr><td colspan="9" class="empty-state"><div class="empty-icon">📭</div>Belum ada data</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ PPh 23 ═══════════════ -->
+<div class="page" id="page-pph23">
+  <div class="page-title">PPh Pasal 23</div>
+  <div class="page-subtitle">Pajak atas Jasa, Dividen, Bunga, Royalti & Sewa | UU PPh & PMK 141/2015</div>
+
+  <div class="panel">
+    <div class="panel-header amber"><span class="panel-title">📝 Form Perhitungan PPh 23</span></div>
+    <div class="panel-body">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Tanggal <span class="req">*</span></label>
+          <input type="date" id="p23-tgl">
+        </div>
+        <div class="form-group">
+          <label>No. Kontrak / Invoice</label>
+          <input type="text" id="p23-inv" placeholder="KTR-2026-001">
+        </div>
+        <div class="form-group">
+          <label>Nama Pemotong (Pemberi Kerja)</label>
+          <input type="text" id="p23-pemotong" placeholder="LPPM Universitas Mataram">
+        </div>
+        <div class="form-group">
+          <label>Nama Penerima Penghasilan <span class="req">*</span></label>
+          <input type="text" id="p23-penerima" placeholder="CV. Teknologi Maju">
+        </div>
+        <div class="form-group">
+          <label>NPWP Penerima</label>
+          <input type="text" id="p23-npwp" placeholder="12.345.678.9-000.000">
+        </div>
+        <div class="form-group">
+          <label>Punya NPWP?</label>
+          <select id="p23-npwp-ada" onchange="hitungPPh23()">
+            <option value="ya">Ya (tarif normal)</option>
+            <option value="tidak">Tidak (tarif × 200%)</option>
+          </select>
+        </div>
+        <div class="form-group full">
+          <label>Jenis Penghasilan <span class="req">*</span></label>
+          <select id="p23-jenis" onchange="hitungPPh23()">
+            <option value="">-- Pilih Jenis --</option>
+            <optgroup label="Tarif 15%">
+              <option value="0.15|Dividen">Dividen</option>
+              <option value="0.15|Bunga">Bunga</option>
+              <option value="0.15|Royalti">Royalti</option>
+              <option value="0.15|Hadiah/Penghargaan">Hadiah / Penghargaan</option>
+            </optgroup>
+            <optgroup label="Tarif 2%">
+              <option value="0.02|Jasa Teknik">Jasa Teknik</option>
+              <option value="0.02|Jasa Manajemen">Jasa Manajemen</option>
+              <option value="0.02|Jasa Konsultansi">Jasa Konsultansi</option>
+              <option value="0.02|Jasa Perawatan/Perbaikan">Jasa Perawatan / Perbaikan</option>
+              <option value="0.02|Jasa Keamanan">Jasa Keamanan</option>
+              <option value="0.02|Jasa Kebersihan">Jasa Kebersihan</option>
+              <option value="0.02|Jasa Katering">Jasa Katering / Boga</option>
+              <option value="0.02|Sewa (non-tanah/bangunan)">Sewa (selain tanah & bangunan)</option>
+              <option value="0.02|Jasa Lainnya">Jasa Lainnya (PMK 141/2015)</option>
+            </optgroup>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Nilai Bruto Penghasilan (Rp) <span class="req">*</span></label>
+          <div class="input-rp"><input type="text" id="p23-bruto" placeholder="0" oninput="fmtInput(this);hitungPPh23()" inputmode="numeric"></div>
+        </div>
+        <div class="form-group">
+          <label>Tarif PPh 23</label>
+          <div class="input-pct"><input type="text" id="p23-tarif" readonly></div>
+        </div>
+        <div class="form-group">
+          <label>PPh 23 Terutang (Rp)</label>
+          <div class="input-rp"><input type="text" id="p23-pph" readonly></div>
+        </div>
+        <div class="form-group">
+          <label>Penghasilan Bersih (Rp)</label>
+          <div class="input-rp"><input type="text" id="p23-neto" readonly></div>
+        </div>
+      </div>
+
+      <div class="result-box" id="p23-result" style="display:none; background: linear-gradient(135deg, #78350F, var(--amber))">
+        <div class="result-item"><div class="result-label">Jenis Penghasilan</div><div class="result-value" id="r23-jenis">–</div></div>
+        <div class="result-item"><div class="result-label">Nilai Bruto</div><div class="result-value" id="r23-bruto">–</div></div>
+        <div class="result-item"><div class="result-label">Tarif</div><div class="result-value" id="r23-tarif">–</div></div>
+        <div class="result-item"><div class="result-label">PPh 23 Terutang</div><div class="result-value big" id="r23-pph">–</div></div>
+        <div class="result-item"><div class="result-label">Diterima Bersih</div><div class="result-value green" id="r23-neto">–</div></div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-success" onclick="simpanPPh23()">💾 Simpan</button>
+        <button class="btn btn-ghost" onclick="resetForm('pph23')">🔄 Reset</button>
+        <button class="btn btn-print" onclick="cetakBuktiPotong('pph23')">🖨️ Cetak Bukti Potong</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-header amber"><span class="panel-title">📋 Daftar PPh 23 Tersimpan</span></div>
+    <div class="panel-body">
+      <div class="table-wrap">
+        <table><thead><tr><th>Tgl</th><th>Invoice</th><th>Penerima</th><th>Jenis</th><th>Tarif</th><th class="td-num">Bruto (Rp)</th><th class="td-num">PPh 23 (Rp)</th><th class="td-num">Neto (Rp)</th><th>Aksi</th></tr></thead>
+          <tbody id="tbody-pph23"><tr><td colspan="9" class="empty-state"><div class="empty-icon">📭</div>Belum ada data</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ PPN ═══════════════ -->
+<div class="page" id="page-ppn">
+  <div class="page-title">Pajak Pertambahan Nilai (PPN)</div>
+  <div class="page-subtitle">Tarif PPN 11% atas BKP & JKP | UU HPP No.7/2021</div>
+
+  <div class="panel">
+    <div class="panel-header purple"><span class="panel-title">📝 Form Faktur PPN</span></div>
+    <div class="panel-body">
+      <div class="form-grid">
+        <div class="form-group"><label>Tanggal Faktur <span class="req">*</span></label><input type="date" id="ppn-tgl"></div>
+        <div class="form-group"><label>No. Faktur Pajak</label><input type="text" id="ppn-faktur" placeholder="010.000-26.00000001"></div>
+        <div class="form-group"><label>PKP Penjual <span class="req">*</span></label><input type="text" id="ppn-penjual" placeholder="PT. Supplier Unram"></div>
+        <div class="form-group"><label>NPWP Penjual</label><input type="text" id="ppn-npwp" placeholder="12.345.678.9-000.000"></div>
+        <div class="form-group"><label>Nama Pembeli</label><input type="text" id="ppn-pembeli" placeholder="LPPM Universitas Mataram"></div>
+        <div class="form-group">
+          <label>Tarif PPN</label>
+          <select id="ppn-tarif-sel" onchange="hitungPPN()">
+            <option value="0.11">11% (Standar – UU HPP)</option>
+            <option value="0">0% (Ekspor / BKP Tertentu)</option>
+          </select>
+        </div>
+      </div>
+
+      <hr class="divider">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <strong style="font-size:0.85rem;">🛍️ Detail Item Barang / Jasa</strong>
+        <button class="btn btn-ghost btn-sm" onclick="tambahItemPPN()">+ Tambah Item</button>
+      </div>
+
+      <div class="table-wrap">
+        <table class="item-table">
+          <thead><tr><th>#</th><th style="min-width:180px">Nama Barang / Jasa</th><th style="min-width:80px">Qty</th><th style="min-width:110px">Harga Satuan (Rp)</th><th style="min-width:110px">Diskon (Rp)</th><th style="min-width:120px">DPP (Rp)</th><th style="min-width:110px">PPN (Rp)</th><th></th></tr></thead>
+          <tbody id="tbody-ppn-items"></tbody>
+        </table>
+      </div>
+
+      <div class="result-box" id="ppn-result" style="margin-top:16px; background: linear-gradient(135deg, #2E1065, var(--purple))">
+        <div class="result-item"><div class="result-label">Total DPP</div><div class="result-value" id="rppn-dpp">Rp 0</div></div>
+        <div class="result-item"><div class="result-label">Tarif PPN</div><div class="result-value" id="rppn-tarif">11%</div></div>
+        <div class="result-item"><div class="result-label">Total PPN</div><div class="result-value big" id="rppn-ppn">Rp 0</div></div>
+        <div class="result-item"><div class="result-label">Total Faktur (DPP+PPN)</div><div class="result-value green" id="rppn-total">Rp 0</div></div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-success" onclick="simpanPPN()">💾 Simpan Faktur</button>
+        <button class="btn btn-ghost" onclick="resetForm('ppn')">🔄 Reset</button>
+        <button class="btn btn-print" onclick="cetakBuktiPotong('ppn')">🖨️ Cetak Faktur</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-header purple"><span class="panel-title">📋 Daftar Faktur PPN Tersimpan</span></div>
+    <div class="panel-body">
+      <div class="table-wrap">
+        <table><thead><tr><th>Tgl</th><th>No.Faktur</th><th>Penjual</th><th>Pembeli</th><th>Tarif</th><th class="td-num">Total DPP (Rp)</th><th class="td-num">PPN (Rp)</th><th class="td-num">Total Faktur (Rp)</th><th>Aksi</th></tr></thead>
+          <tbody id="tbody-ppn"><tr><td colspan="9" class="empty-state"><div class="empty-icon">📭</div>Belum ada data</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ RIWAYAT ═══════════════ -->
+<div class="page" id="page-riwayat">
+  <div class="page-title">Riwayat Transaksi</div>
+  <div class="page-subtitle">Semua data pajak yang telah disimpan</div>
+
+  <div class="panel">
+    <div class="panel-header gray"><span class="panel-title">📊 Semua Transaksi</span>
+      <div style="margin-left:auto;display:flex;gap:8px">
+        <select id="filter-jenis" class="btn btn-ghost btn-sm" onchange="renderRiwayat()" style="font-size:0.78rem;padding:4px 10px">
+          <option value="">Semua Jenis</option>
+          <option value="PPh 21">PPh 21</option>
+          <option value="PPh 22">PPh 22</option>
+          <option value="PPh 23">PPh 23</option>
+          <option value="PPN">PPN</option>
+        </select>
+        <button class="btn btn-danger btn-sm" onclick="hapusSemuaData()">🗑️ Hapus Semua</button>
+      </div>
+    </div>
+    <div class="panel-body">
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Tgl</th><th>Jenis</th><th>Nama / Penerima</th><th>Uraian</th><th class="td-num">Bruto / DPP (Rp)</th><th>Tarif</th><th class="td-num">Pajak Terutang (Rp)</th><th>Aksi</th></tr></thead>
+          <tbody id="tbody-riwayat"><tr><td colspan="8" class="empty-state"><div class="empty-icon">📭</div>Belum ada data</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ LAPORAN ═══════════════ -->
+<div class="page" id="page-laporan">
+  <div class="page-title">Cetak Laporan</div>
+  <div class="page-subtitle">Ekspor dan cetak rekapitulasi pajak</div>
+
+  <div class="panel">
+    <div class="panel-header gray"><span class="panel-title">🖨️ Laporan Rekapitulasi Pajak</span></div>
+    <div class="panel-body">
+      <div class="form-grid" style="max-width:500px">
+        <div class="form-group"><label>Periode Dari</label><input type="date" id="lap-dari"></div>
+        <div class="form-group"><label>Periode Sampai</label><input type="date" id="lap-sampai"></div>
+        <div class="form-group"><label>Instansi / Unit Kerja</label><input type="text" id="lap-instansi" value="LPPM Universitas Mataram"></div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="cetakLaporan()">🖨️ Cetak Laporan Rekapitulasi</button>
+        <button class="btn btn-success" onclick="eksporCSV()">📥 Ekspor CSV</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="print-laporan" style="display:none" class="panel">
+    <div class="panel-body" id="print-content"></div>
+  </div>
+</div>
+
+<!-- ═══════════════ TARIF ═══════════════ -->
+<div class="page" id="page-tarif">
+  <div class="page-title">Tabel Tarif Pajak</div>
+  <div class="page-subtitle">Referensi tarif sesuai peraturan perpajakan Indonesia yang berlaku</div>
+
+  <div class="panel">
+    <div class="panel-header"><span class="panel-title">👤 Tarif PPh 21 Final Honorarium (PP 58/2023)</span></div>
+    <div class="panel-body">
+      <div class="tarif-grid">
+        <div class="tarif-hdr">Golongan / Status</div><div class="tarif-hdr">Tarif</div>
+        <div class="tarif-hdr">Dasar Hukum</div><div class="tarif-hdr">Sifat</div>
+        <div class="tarif-cell">PNS / TNI / Polri Gol. I & II + Pensiunan Gol. I/II</div><div class="tarif-cell rate" style="color:var(--teal)">0%</div><div class="tarif-cell">PP 58/2023</div><div class="tarif-cell">FINAL</div>
+        <div class="tarif-cell">PNS / TNI / Polri Gol. III + Pensiunan Gol. III</div><div class="tarif-cell rate">5%</div><div class="tarif-cell">PP 58/2023</div><div class="tarif-cell">FINAL</div>
+        <div class="tarif-cell">PNS / TNI / Polri Gol. IV + Pensiunan Gol. IV</div><div class="tarif-cell rate">15%</div><div class="tarif-cell">PP 58/2023</div><div class="tarif-cell">FINAL</div>
+        <div class="tarif-cell">Non-PNS / Umum yang memiliki NPWP</div><div class="tarif-cell rate">5%</div><div class="tarif-cell">PMK 168/2023</div><div class="tarif-cell">FINAL</div>
+        <div class="tarif-cell">Non-PNS / Umum yang TIDAK memiliki NPWP</div><div class="tarif-cell rate">6%</div><div class="tarif-cell">PMK 168/2023</div><div class="tarif-cell">FINAL (+20%)</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-header teal"><span class="panel-title">🛒 Tarif PPh 22 (PMK 41/2022)</span></div>
+    <div class="panel-body">
+      <div class="tarif-grid">
+        <div class="tarif-hdr">Pemungut / Objek</div><div class="tarif-hdr">Tarif</div>
+        <div class="tarif-hdr">Keterangan</div><div class="tarif-hdr">Sifat</div>
+        <div class="tarif-cell">Bendahara Pemerintah (pembelian barang)</div><div class="tarif-cell rate">1,5%</div><div class="tarif-cell">Dari DPP</div><div class="tarif-cell">Tidak Final</div>
+        <div class="tarif-cell">BUMN (pembelian barang)</div><div class="tarif-cell rate">1,5%</div><div class="tarif-cell">Dari DPP</div><div class="tarif-cell">Tidak Final</div>
+        <div class="tarif-cell">Industri Semen (penjualan semen)</div><div class="tarif-cell rate">0,25%</div><div class="tarif-cell">Final untuk non-distributor</div><div class="tarif-cell">Final</div>
+        <div class="tarif-cell">Industri Otomotif</div><div class="tarif-cell rate">0,45%</div><div class="tarif-cell">Dari DPP</div><div class="tarif-cell">Tidak Final</div>
+        <div class="tarif-cell">Migas (penjualan bahan bakar)</div><div class="tarif-cell rate">0,3%</div><div class="tarif-cell">Dari DPP</div><div class="tarif-cell">Tidak Final</div>
+        <div class="tarif-cell">Impor Barang (API Umum)</div><div class="tarif-cell rate">2,5%</div><div class="tarif-cell">Dari nilai impor</div><div class="tarif-cell">Tidak Final</div>
+        <div class="tarif-cell">Tanpa NPWP (semua objek)</div><div class="tarif-cell rate">× 200%</div><div class="tarif-cell">Tarif normal dikalikan 2</div><div class="tarif-cell">Sanksi</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-header amber"><span class="panel-title">📄 Tarif PPh 23 (UU PPh & PMK 141/2015)</span></div>
+    <div class="panel-body">
+      <div class="tarif-grid">
+        <div class="tarif-hdr">Jenis Penghasilan</div><div class="tarif-hdr">Tarif</div>
+        <div class="tarif-hdr">Keterangan</div><div class="tarif-hdr">Sifat</div>
+        <div class="tarif-cell">Dividen</div><div class="tarif-cell rate">15%</div><div class="tarif-cell">Pasal 23 UU PPh</div><div class="tarif-cell">Tidak Final</div>
+        <div class="tarif-cell">Bunga</div><div class="tarif-cell rate">15%</div><div class="tarif-cell">Pasal 23 UU PPh</div><div class="tarif-cell">Tidak Final</div>
+        <div class="tarif-cell">Royalti</div><div class="tarif-cell rate">15%</div><div class="tarif-cell">Pasal 23 UU PPh</div><div class="tarif-cell">Tidak Final</div>
+        <div class="tarif-cell">Hadiah / Penghargaan</div><div class="tarif-cell rate">15%</div><div class="tarif-cell">Pasal 23 UU PPh</div><div class="tarif-cell">Tidak Final</div>
+        <div class="tarif-cell">Jasa Teknik / Manajemen / Konsultansi</div><div class="tarif-cell rate">2%</div><div class="tarif-cell">PMK 141/2015</div><div class="tarif-cell">Tidak Final</div>
+        <div class="tarif-cell">Jasa Perawatan / Keamanan / Kebersihan</div><div class="tarif-cell rate">2%</div><div class="tarif-cell">PMK 141/2015</div><div class="tarif-cell">Tidak Final</div>
+        <div class="tarif-cell">Sewa (selain tanah & bangunan)</div><div class="tarif-cell rate">2%</div><div class="tarif-cell">PMK 141/2015</div><div class="tarif-cell">Tidak Final</div>
+        <div class="tarif-cell">Tanpa NPWP (semua jenis)</div><div class="tarif-cell rate">× 200%</div><div class="tarif-cell">UU PPh Pasal 23</div><div class="tarif-cell">Sanksi</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-header purple"><span class="panel-title">🧾 Ketentuan PPN (UU HPP No.7/2021)</span></div>
+    <div class="panel-body">
+      <div class="tarif-grid">
+        <div class="tarif-hdr">Jenis / Objek</div><div class="tarif-hdr">Tarif</div>
+        <div class="tarif-hdr">Berlaku Sejak</div><div class="tarif-hdr">Keterangan</div>
+        <div class="tarif-cell">BKP / JKP Umum (dalam negeri)</div><div class="tarif-cell rate">11%</div><div class="tarif-cell">1 April 2022</div><div class="tarif-cell">UU HPP No.7/2021</div>
+        <div class="tarif-cell">Ekspor BKP / JKP</div><div class="tarif-cell rate" style="color:var(--teal)">0%</div><div class="tarif-cell">–</div><div class="tarif-cell">Tarif 0% untuk ekspor</div>
+        <div class="tarif-cell">Vaksin, Buku Pelajaran, Listrik, Air Bersih</div><div class="tarif-cell rate" style="color:var(--teal)">0%</div><div class="tarif-cell">–</div><div class="tarif-cell">BKP Strategis dibebaskan</div>
+        <div class="tarif-cell">Kode Faktur 010 (umum)</div><div class="tarif-cell rate">11%</div><div class="tarif-cell">–</div><div class="tarif-cell">Penyerahan BKP/JKP normal</div>
+        <div class="tarif-cell">Kode Faktur 020 (Pemungut Bendahara)</div><div class="tarif-cell rate">11%</div><div class="tarif-cell">–</div><div class="tarif-cell">Dipungut bendahara pemerintah</div>
+      </div>
+      <div style="margin-top:14px;padding:12px;background:var(--amber-l);border-radius:8px;font-size:0.82rem;color:var(--amber)">
+        <strong>⏰ Batas Waktu:</strong> Setor PPN paling lambat tgl 15 bulan berikutnya. Lapor SPT Masa PPN paling lambat akhir bulan berikutnya melalui e-Faktur & DJP Online. Kode Akun Pajak PPN Keluaran: 411211.
+      </div>
+    </div>
+  </div>
+</div>
+
+</main>
+
+<!-- MODAL CETAK -->
+<div class="modal-overlay" id="modal-cetak">
+  <div class="modal">
+    <div class="modal-title" id="modal-cetak-title">Bukti Pemotongan</div>
+    <div id="modal-cetak-body"></div>
+    <div class="btn-row" style="margin-top:16px">
+      <button class="btn btn-print" onclick="window.print()">🖨️ Print</button>
+      <button class="btn btn-ghost" onclick="document.getElementById('modal-cetak').classList.remove('open')">✕ Tutup</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toasts"></div>
+
+<script>
+// ═══════════════════════════════════════════
+// STATE & STORAGE
+// ═══════════════════════════════════════════
+let db = JSON.parse(localStorage.getItem('sipajar_db') || '{"pph21":[],"pph22":[],"pph23":[],"ppn":[]}');
+let ppnItems = [];
+
+function saveDB() {
+  localStorage.setItem('sipajar_db', JSON.stringify(db));
+}
+
+// ═══════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  const navItems = document.querySelectorAll('.nav-item');
+  navItems.forEach(n => { if (n.getAttribute('onclick') && n.getAttribute('onclick').includes("'"+id+"'")) n.classList.add('active'); });
+  if (id === 'dashboard') updateDashboard();
+  if (id === 'riwayat') renderRiwayat();
+  if (id === 'pph21') renderTablePPh21();
+  if (id === 'pph22') renderTablePPh22();
+  if (id === 'pph23') renderTablePPh23();
+  if (id === 'ppn') { renderTablePPN(); if(ppnItems.length===0) initPPNItems(); }
+}
+
+// ═══════════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════════
+// Format input saat mengetik — tanda titik ribuan
+function fmtInput(el) {
+  let raw = el.value.replace(/[^0-9]/g, '');
+  el.value = raw ? parseInt(raw, 10).toLocaleString('id-ID') : '';
+}
+
+// Ambil nilai numerik bersih dari input terformat
+function getVal(id) {
+  const el = document.getElementById(id);
+  if (!el) return 0;
+  const raw = (el.value || '').replace(/[^0-9]/g, '');
+  return raw ? parseInt(raw, 10) : 0;
+}
+
+function fmtRp(n) {
+  if(isNaN(n) || n === null || n === undefined) return 'Rp 0';
+  return 'Rp ' + Math.round(n).toLocaleString('id-ID');
+}
+function fmtPct(n) { return (n*100).toFixed(2).replace(/\.?0+$/,'') + '%'; }
+function uid() { return Date.now().toString(36) + Math.random().toString(36).substr(2,5); }
+function toast(msg, type='ok') {
+  const c = document.getElementById('toasts');
+  const t = document.createElement('div');
+  t.className = 'toast' + (type==='error'?' error':'');
+  t.textContent = msg;
+  c.appendChild(t);
+  setTimeout(()=>t.remove(), 3200);
+}
+function today() { return new Date().toISOString().split('T')[0]; }
+
+// ═══════════════════════════════════════════
+// PPh 21
+// ═══════════════════════════════════════════
+function hitungPPh21() {
+  const gol = document.getElementById('p21-golongan').value;
+  const bruto = getVal('p21-bruto');
+  if (!gol || !bruto) { document.getElementById('p21-result').style.display='none'; return; }
+  const [tarifStr] = gol.split('|');
+  const tarif = parseFloat(tarifStr);
+  const pph = Math.round(bruto * tarif);
+  const neto = bruto - pph;
+  document.getElementById('p21-tarif').value = fmtPct(tarif);
+  document.getElementById('p21-pph').value = Math.round(pph).toLocaleString('id-ID');
+  document.getElementById('p21-neto').value = Math.round(neto).toLocaleString('id-ID');
+  document.getElementById('p21-result').style.display = 'grid';
+  document.getElementById('r21-bruto').textContent = fmtRp(bruto);
+  document.getElementById('r21-tarif').textContent = fmtPct(tarif);
+  document.getElementById('r21-pph').textContent = fmtRp(pph);
+  document.getElementById('r21-neto').textContent = fmtRp(neto);
+}
+
+function simpanPPh21() {
+  const gol = document.getElementById('p21-golongan').value;
+  const nama = document.getElementById('p21-nama').value.trim();
+  const kegiatan = document.getElementById('p21-kegiatan').value.trim();
+  const bruto = getVal('p21-bruto');
+  if (!nama || !gol || !bruto) { toast('Lengkapi nama, golongan, dan honor bruto', 'error'); return; }
+  const [tarifStr, golLabel] = gol.split('|');
+  const tarif = parseFloat(tarifStr);
+  const pph = Math.round(bruto * tarif);
+  const rec = {
+    id: uid(), jenis:'PPh 21',
+    tgl: document.getElementById('p21-tgl').value || today(),
+    nama, nip: document.getElementById('p21-nip').value,
+    npwp: document.getElementById('p21-npwp').value,
+    kegiatan, instansi: document.getElementById('p21-instansi').value,
+    golongan: golLabel, tarif, bruto, pph, neto: bruto-pph
+  };
+  db.pph21.push(rec); saveDB();
+  renderTablePPh21(); updateBadge(); updateDashboard();
+  toast('✅ PPh 21 berhasil disimpan');
+}
+
+function renderTablePPh21() {
+  const tb = document.getElementById('tbody-pph21');
+  if (!db.pph21.length) { tb.innerHTML='<tr><td colspan="9" class="empty-state"><div class="empty-icon">📭</div>Belum ada data</td></tr>'; return; }
+  tb.innerHTML = db.pph21.slice().reverse().map(r=>`
+    <tr>
+      <td>${r.tgl}</td>
+      <td>${r.nama}</td>
+      <td>${r.kegiatan||'-'}</td>
+      <td><span class="badge badge-blue">${r.golongan}</span></td>
+      <td class="td-center">${fmtPct(r.tarif)}</td>
+      <td class="td-num">${fmtRp(r.bruto)}</td>
+      <td class="td-num" style="color:var(--red);font-weight:600">${fmtRp(r.pph)}</td>
+      <td class="td-num" style="color:var(--teal);font-weight:600">${fmtRp(r.neto)}</td>
+      <td><button class="btn btn-danger btn-sm" onclick="hapusRec('pph21','${r.id}')">Hapus</button></td>
+    </tr>`).join('');
+}
+
+// ═══════════════════════════════════════════
+// PPh 22
+// ═══════════════════════════════════════════
+function hitungPPh22() {
+  const harga = getVal('p22-harga');
+  const inkl = document.getElementById('p22-inkl').value;
+  const tarifBase = parseFloat(document.getElementById('p22-pemungut').value);
+  const npwpAda = document.getElementById('p22-npwp-ada').value;
+  if (!harga) { document.getElementById('p22-result').style.display='none'; return; }
+  const dpp = inkl === 'ya' ? Math.round(harga / 1.11) : harga;
+  const tarif = npwpAda === 'ya' ? tarifBase : tarifBase * 2;
+  const pph = Math.round(dpp * tarif);
+  const ppn = Math.round(dpp * 0.11);
+  const total = dpp + pph + ppn;
+  document.getElementById('p22-dpp').value = Math.round(dpp).toLocaleString('id-ID');
+  document.getElementById('p22-tarif').value = fmtPct(tarif);
+  document.getElementById('p22-pph').value = Math.round(pph).toLocaleString('id-ID');
+  document.getElementById('p22-ppn').value = Math.round(ppn).toLocaleString('id-ID');
+  document.getElementById('p22-total').value = Math.round(total).toLocaleString('id-ID');
+  document.getElementById('p22-result').style.display = 'grid';
+  document.getElementById('r22-dpp').textContent = fmtRp(dpp);
+  document.getElementById('r22-tarif').textContent = fmtPct(tarif);
+  document.getElementById('r22-pph').textContent = fmtRp(pph);
+  document.getElementById('r22-ppn').textContent = fmtRp(ppn);
+  document.getElementById('r22-total').textContent = fmtRp(total);
+}
+
+function simpanPPh22() {
+  const rekanan = document.getElementById('p22-rekanan').value.trim();
+  const harga = getVal('p22-harga');
+  if (!rekanan || !harga) { toast('Lengkapi nama rekanan dan nilai pembelian', 'error'); return; }
+  const inkl = document.getElementById('p22-inkl').value;
+  const tarifBase = parseFloat(document.getElementById('p22-pemungut').value);
+  const npwpAda = document.getElementById('p22-npwp-ada').value;
+  const dpp = inkl === 'ya' ? Math.round(harga / 1.11) : harga;
+  const tarif = npwpAda === 'ya' ? tarifBase : tarifBase * 2;
+  const pph = Math.round(dpp * tarif);
+  const ppn = Math.round(dpp * 0.11);
+  const rec = {
+    id: uid(), jenis:'PPh 22',
+    tgl: document.getElementById('p22-tgl').value || today(),
+    inv: document.getElementById('p22-inv').value,
+    rekanan, npwp: document.getElementById('p22-npwp').value,
+    barang: document.getElementById('p22-barang').value,
+    dpp, tarif, pph, ppn, total: dpp+pph+ppn
+  };
+  db.pph22.push(rec); saveDB();
+  renderTablePPh22(); updateBadge(); updateDashboard();
+  toast('✅ PPh 22 berhasil disimpan');
+}
+
+function renderTablePPh22() {
+  const tb = document.getElementById('tbody-pph22');
+  if (!db.pph22.length) { tb.innerHTML='<tr><td colspan="9" class="empty-state"><div class="empty-icon">📭</div>Belum ada data</td></tr>'; return; }
+  tb.innerHTML = db.pph22.slice().reverse().map(r=>`
+    <tr>
+      <td>${r.tgl}</td><td>${r.inv||'-'}</td><td>${r.rekanan}</td><td>${r.barang||'-'}</td>
+      <td class="td-num">${fmtRp(r.dpp)}</td>
+      <td class="td-center">${fmtPct(r.tarif)}</td>
+      <td class="td-num" style="color:var(--red);font-weight:600">${fmtRp(r.pph)}</td>
+      <td class="td-num">${fmtRp(r.ppn)}</td>
+      <td><button class="btn btn-danger btn-sm" onclick="hapusRec('pph22','${r.id}')">Hapus</button></td>
+    </tr>`).join('');
+}
+
+// ═══════════════════════════════════════════
+// PPh 23
+// ═══════════════════════════════════════════
+function hitungPPh23() {
+  const jenis = document.getElementById('p23-jenis').value;
+  const bruto = getVal('p23-bruto');
+  const npwpAda = document.getElementById('p23-npwp-ada').value;
+  if (!jenis || !bruto) { document.getElementById('p23-result').style.display='none'; return; }
+  const [tarifBase, jenisLabel] = jenis.split('|');
+  const tarif = npwpAda === 'ya' ? parseFloat(tarifBase) : parseFloat(tarifBase) * 2;
+  const pph = Math.round(bruto * tarif);
+  const neto = bruto - pph;
+  document.getElementById('p23-tarif').value = fmtPct(tarif);
+  document.getElementById('p23-pph').value = Math.round(pph).toLocaleString('id-ID');
+  document.getElementById('p23-neto').value = Math.round(neto).toLocaleString('id-ID');
+  document.getElementById('p23-result').style.display = 'grid';
+  document.getElementById('r23-jenis').textContent = jenisLabel;
+  document.getElementById('r23-bruto').textContent = fmtRp(bruto);
+  document.getElementById('r23-tarif').textContent = fmtPct(tarif);
+  document.getElementById('r23-pph').textContent = fmtRp(pph);
+  document.getElementById('r23-neto').textContent = fmtRp(neto);
+}
+
+function simpanPPh23() {
+  const penerima = document.getElementById('p23-penerima').value.trim();
+  const jenis = document.getElementById('p23-jenis').value;
+  const bruto = getVal('p23-bruto');
+  if (!penerima || !jenis || !bruto) { toast('Lengkapi data penerima, jenis, dan nilai bruto', 'error'); return; }
+  const [tarifBase, jenisLabel] = jenis.split('|');
+  const npwpAda = document.getElementById('p23-npwp-ada').value;
+  const tarif = npwpAda === 'ya' ? parseFloat(tarifBase) : parseFloat(tarifBase) * 2;
+  const pph = Math.round(bruto * tarif);
+  const rec = {
+    id: uid(), jenis:'PPh 23',
+    tgl: document.getElementById('p23-tgl').value || today(),
+    inv: document.getElementById('p23-inv').value,
+    pemotong: document.getElementById('p23-pemotong').value,
+    penerima, npwp: document.getElementById('p23-npwp').value,
+    jenisLabel, tarif, bruto, pph, neto: bruto-pph
+  };
+  db.pph23.push(rec); saveDB();
+  renderTablePPh23(); updateBadge(); updateDashboard();
+  toast('✅ PPh 23 berhasil disimpan');
+}
+
+function renderTablePPh23() {
+  const tb = document.getElementById('tbody-pph23');
+  if (!db.pph23.length) { tb.innerHTML='<tr><td colspan="9" class="empty-state"><div class="empty-icon">📭</div>Belum ada data</td></tr>'; return; }
+  tb.innerHTML = db.pph23.slice().reverse().map(r=>`
+    <tr>
+      <td>${r.tgl}</td><td>${r.inv||'-'}</td><td>${r.penerima}</td>
+      <td><span class="badge badge-amber">${r.jenisLabel}</span></td>
+      <td class="td-center">${fmtPct(r.tarif)}</td>
+      <td class="td-num">${fmtRp(r.bruto)}</td>
+      <td class="td-num" style="color:var(--red);font-weight:600">${fmtRp(r.pph)}</td>
+      <td class="td-num" style="color:var(--teal);font-weight:600">${fmtRp(r.neto)}</td>
+      <td><button class="btn btn-danger btn-sm" onclick="hapusRec('pph23','${r.id}')">Hapus</button></td>
+    </tr>`).join('');
+}
+
+// ═══════════════════════════════════════════
+// PPN
+// ═══════════════════════════════════════════
+function initPPNItems() {
+  ppnItems = [{id:uid(),nama:'',qty:1,harga:0,diskon:0}];
+  renderPPNItems();
+}
+
+function tambahItemPPN() {
+  ppnItems.push({id:uid(),nama:'',qty:1,harga:0,diskon:0});
+  renderPPNItems();
+}
+
+function hapusItemPPN(id) {
+  ppnItems = ppnItems.filter(x=>x.id!==id);
+  if(!ppnItems.length) ppnItems = [{id:uid(),nama:'',qty:1,harga:0,diskon:0}];
+  renderPPNItems();
+}
+
+function renderPPNItems() {
+  const tarif = parseFloat(document.getElementById('ppn-tarif-sel').value);
+  const tb = document.getElementById('tbody-ppn-items');
+  tb.innerHTML = ppnItems.map((item,i)=>`
+    <tr>
+      <td class="td-center" style="color:var(--gray)">${i+1}</td>
+      <td><input type="text" value="${item.nama}" oninput="updateItem('${item.id}','nama',this.value)" placeholder="Nama barang/jasa"></td>
+      <td><input type="text" value="${item.qty}" oninput="updateItemPPN(this,'${item.id}','qty')" style="text-align:center;width:100%" inputmode="numeric"></td>
+      <td><input type="text" value="${item.harga?item.harga.toLocaleString('id-ID'):''}" oninput="updateItemPPN(this,'${item.id}','harga')" placeholder="0" inputmode="numeric"></td>
+      <td><input type="text" value="${item.diskon?item.diskon.toLocaleString('id-ID'):''}" oninput="updateItemPPN(this,'${item.id}','diskon')" placeholder="0" inputmode="numeric"></td>
+      <td class="td-num" style="font-weight:600">${((item.qty||0)*(item.harga||0)-(item.diskon||0)).toLocaleString('id-ID')}</td>
+      <td class="td-num" style="color:var(--purple);font-weight:600">${Math.round(((item.qty||0)*(item.harga||0)-(item.diskon||0))*tarif).toLocaleString('id-ID')}</td>
+      <td class="td-del"><button class="btn-del" onclick="hapusItemPPN('${item.id}')">✕</button></td>
+    </tr>`).join('');
+  hitungPPN();
+}
+
+function updateItemPPN(el, id, field) {
+  const item = ppnItems.find(x=>x.id===id);
+  if (!item) return;
+  if (field === 'qty') {
+    const raw = el.value.replace(/[^0-9]/g,'');
+    item.qty = raw ? parseInt(raw,10) : 1;
+  } else {
+    fmtInput(el);
+    const raw = el.value.replace(/[^0-9]/g,'');
+    item[field] = raw ? parseInt(raw,10) : 0;
+  }
+  // Recalculate tampilan DPP & PPN di baris yang sama tanpa re-render semua
+  hitungPPN();
+  // Update sel DPP & PPN baris ini
+  const tr = el.closest('tr');
+  if (tr) {
+    const dpp = (item.qty||0)*(item.harga||0)-(item.diskon||0);
+    const tarif = parseFloat(document.getElementById('ppn-tarif-sel').value);
+    const cells = tr.querySelectorAll('td');
+    if (cells[5]) cells[5].textContent = dpp.toLocaleString('id-ID');
+    if (cells[6]) cells[6].textContent = Math.round(dpp*tarif).toLocaleString('id-ID');
+  }
+}
+
+function updateItem(id, field, val) {
+  const item = ppnItems.find(x=>x.id===id);
+  if(item) { item[field] = field==='nama'?val:(parseFloat(val)||0); }
+  renderPPNItems();
+}
+
+function hitungPPN() {
+  const tarif = parseFloat(document.getElementById('ppn-tarif-sel').value);
+  let totalDPP = 0;
+  ppnItems.forEach(it=>{ totalDPP += (it.qty||0)*(it.harga||0)-(it.diskon||0); });
+  const totalPPN = Math.round(totalDPP * tarif);
+  document.getElementById('rppn-dpp').textContent = fmtRp(totalDPP);
+  document.getElementById('rppn-tarif').textContent = fmtPct(tarif);
+  document.getElementById('rppn-ppn').textContent = fmtRp(totalPPN);
+  document.getElementById('rppn-total').textContent = fmtRp(totalDPP + totalPPN);
+}
+
+function simpanPPN() {
+  const penjual = document.getElementById('ppn-penjual').value.trim();
+  if (!penjual) { toast('Lengkapi nama PKP penjual', 'error'); return; }
+  const tarif = parseFloat(document.getElementById('ppn-tarif-sel').value);
+  let totalDPP = 0;
+  ppnItems.forEach(it=>{ totalDPP += (it.qty||0)*(it.harga||0)-(it.diskon||0); });
+  if (!totalDPP) { toast('Isi minimal satu item dengan nilai', 'error'); return; }
+  const ppnVal = Math.round(totalDPP * tarif);
+  const rec = {
+    id: uid(), jenis:'PPN',
+    tgl: document.getElementById('ppn-tgl').value || today(),
+    faktur: document.getElementById('ppn-faktur').value,
+    penjual, npwp: document.getElementById('ppn-npwp').value,
+    pembeli: document.getElementById('ppn-pembeli').value,
+    tarif, items: JSON.parse(JSON.stringify(ppnItems)),
+    totalDPP, ppn: ppnVal, total: totalDPP + ppnVal
+  };
+  db.ppn.push(rec); saveDB();
+  renderTablePPN(); updateBadge(); updateDashboard();
+  ppnItems = [{id:uid(),nama:'',qty:1,harga:0,diskon:0}];
+  renderPPNItems();
+  toast('✅ Faktur PPN berhasil disimpan');
+}
+
+function renderTablePPN() {
+  const tb = document.getElementById('tbody-ppn');
+  if (!db.ppn.length) { tb.innerHTML='<tr><td colspan="9" class="empty-state"><div class="empty-icon">📭</div>Belum ada data</td></tr>'; return; }
+  tb.innerHTML = db.ppn.slice().reverse().map(r=>`
+    <tr>
+      <td>${r.tgl}</td><td>${r.faktur||'-'}</td><td>${r.penjual}</td><td>${r.pembeli||'-'}</td>
+      <td class="td-center">${fmtPct(r.tarif)}</td>
+      <td class="td-num">${fmtRp(r.totalDPP)}</td>
+      <td class="td-num" style="color:var(--purple);font-weight:600">${fmtRp(r.ppn)}</td>
+      <td class="td-num" style="font-weight:600">${fmtRp(r.total)}</td>
+      <td><button class="btn btn-danger btn-sm" onclick="hapusRec('ppn','${r.id}')">Hapus</button></td>
+    </tr>`).join('');
+}
+
+// ═══════════════════════════════════════════
+// RIWAYAT
+// ═══════════════════════════════════════════
+function renderRiwayat() {
+  const filter = document.getElementById('filter-jenis').value;
+  let all = [
+    ...db.pph21.map(r=>({...r,jenis:'PPh 21',bruto:r.bruto,pajak:r.pph,nama:r.nama,uraian:r.kegiatan,tarifStr:fmtPct(r.tarif)})),
+    ...db.pph22.map(r=>({...r,jenis:'PPh 22',bruto:r.dpp,pajak:r.pph,nama:r.rekanan,uraian:r.barang||'-',tarifStr:fmtPct(r.tarif)})),
+    ...db.pph23.map(r=>({...r,jenis:'PPh 23',bruto:r.bruto,pajak:r.pph,nama:r.penerima,uraian:r.jenisLabel,tarifStr:fmtPct(r.tarif)})),
+    ...db.ppn.map(r=>({...r,jenis:'PPN',bruto:r.totalDPP,pajak:r.ppn,nama:r.penjual,uraian:'Faktur: '+(r.faktur||'-'),tarifStr:fmtPct(r.tarif)})),
+  ].sort((a,b)=>b.tgl.localeCompare(a.tgl));
+  if(filter) all = all.filter(r=>r.jenis===filter);
+  const tb = document.getElementById('tbody-riwayat');
+  const badges = {'PPh 21':'badge-blue','PPh 22':'badge-teal','PPh 23':'badge-amber','PPN':'badge-purple'};
+  if(!all.length){tb.innerHTML='<tr><td colspan="8" class="empty-state"><div class="empty-icon">📭</div>Belum ada data</td></tr>';return;}
+  tb.innerHTML = all.map(r=>`
+    <tr>
+      <td>${r.tgl}</td>
+      <td><span class="badge ${badges[r.jenis]}">${r.jenis}</span></td>
+      <td>${r.nama}</td>
+      <td>${r.uraian||'-'}</td>
+      <td class="td-num">${fmtRp(r.bruto)}</td>
+      <td class="td-center">${r.tarifStr}</td>
+      <td class="td-num" style="color:var(--red);font-weight:700">${fmtRp(r.pajak)}</td>
+      <td><button class="btn btn-danger btn-sm" onclick="hapusRec('${r.jenis==='PPh 21'?'pph21':r.jenis==='PPh 22'?'pph22':r.jenis==='PPh 23'?'pph23':'ppn'}','${r.id}')">Hapus</button></td>
+    </tr>`).join('');
+}
+
+// ═══════════════════════════════════════════
+// DASHBOARD
+// ═══════════════════════════════════════════
+function updateDashboard() {
+  const sum = (arr, key) => arr.reduce((s,r)=>s+(r[key]||0),0);
+  const pph21 = sum(db.pph21,'pph');
+  const pph22 = sum(db.pph22,'pph');
+  const pph23 = sum(db.pph23,'pph');
+  const ppn   = sum(db.ppn,'ppn');
+  const grand = pph21+pph22+pph23+ppn;
+  const n21=db.pph21.length, n22=db.pph22.length, n23=db.pph23.length, np=db.ppn.length;
+  document.getElementById('ds-total-trx').textContent = n21+n22+n23+np;
+  document.getElementById('ds-pph21').textContent = fmtRp(pph21);
+  document.getElementById('ds-pph21-n').textContent = n21+' transaksi';
+  document.getElementById('ds-pph22').textContent = fmtRp(pph22);
+  document.getElementById('ds-pph22-n').textContent = n22+' transaksi';
+  document.getElementById('ds-pph23').textContent = fmtRp(pph23);
+  document.getElementById('ds-pph23-n').textContent = n23+' transaksi';
+  document.getElementById('ds-ppn').textContent = fmtRp(ppn);
+  document.getElementById('ds-ppn-n').textContent = np+' transaksi';
+  document.getElementById('ds-grand').textContent = fmtRp(grand);
+
+  // Chart
+  const bars = document.getElementById('chart-bars');
+  if(grand===0){bars.innerHTML='<div style="color:var(--gray);font-size:0.85rem;">Belum ada data.</div>';return;}
+  const items = [
+    {label:'PPh 21',val:pph21,color:'var(--blue)'},
+    {label:'PPh 22',val:pph22,color:'var(--teal)'},
+    {label:'PPh 23',val:pph23,color:'var(--amber)'},
+    {label:'PPN',   val:ppn,  color:'var(--purple)'},
+  ];
+  bars.innerHTML = items.map(it=>`
+    <div class="chart-bar-row">
+      <div class="chart-bar-label">${it.label}</div>
+      <div class="chart-bar-track">
+        <div class="chart-bar-fill" style="width:${grand>0?(it.val/grand*100).toFixed(1):0}%;background:${it.color}">
+          ${grand>0&&it.val>0?(it.val/grand*100).toFixed(1)+'%':''}
+        </div>
+      </div>
+      <div class="chart-bar-val">${fmtRp(it.val)}</div>
+    </div>`).join('');
+
+  // Recent 5
+  let all = [
+    ...db.pph21.map(r=>({tgl:r.tgl,jenis:'PPh 21',nama:r.nama,bruto:r.bruto,pajak:r.pph})),
+    ...db.pph22.map(r=>({tgl:r.tgl,jenis:'PPh 22',nama:r.rekanan,bruto:r.dpp,pajak:r.pph})),
+    ...db.pph23.map(r=>({tgl:r.tgl,jenis:'PPh 23',nama:r.penerima,bruto:r.bruto,pajak:r.pph})),
+    ...db.ppn.map(r=>({tgl:r.tgl,jenis:'PPN',nama:r.penjual,bruto:r.totalDPP,pajak:r.ppn})),
+  ].sort((a,b)=>b.tgl.localeCompare(a.tgl)).slice(0,5);
+  const badges = {'PPh 21':'badge-blue','PPh 22':'badge-teal','PPh 23':'badge-amber','PPN':'badge-purple'};
+  const tbody = document.getElementById('tbody-recent');
+  if(!all.length){tbody.innerHTML='<tr><td colspan="5" class="empty-state">Belum ada transaksi</td></tr>';return;}
+  tbody.innerHTML = all.map(r=>`
+    <tr><td>${r.tgl}</td>
+    <td><span class="badge ${badges[r.jenis]}">${r.jenis}</span></td>
+    <td>${r.nama}</td>
+    <td class="td-num">${fmtRp(r.bruto)}</td>
+    <td class="td-num" style="color:var(--red);font-weight:700">${fmtRp(r.pajak)}</td></tr>`).join('');
+}
+
+function updateBadge() {
+  document.getElementById('badge-count').textContent = db.pph21.length+db.pph22.length+db.pph23.length+db.ppn.length;
+}
+
+// ═══════════════════════════════════════════
+// DELETE
+// ═══════════════════════════════════════════
+function hapusRec(tbl, id) {
+  if(!confirm('Hapus data ini?')) return;
+  db[tbl] = db[tbl].filter(r=>r.id!==id); saveDB();
+  if(tbl==='pph21') renderTablePPh21();
+  if(tbl==='pph22') renderTablePPh22();
+  if(tbl==='pph23') renderTablePPh23();
+  if(tbl==='ppn') renderTablePPN();
+  updateBadge(); updateDashboard(); renderRiwayat();
+  toast('Data dihapus');
+}
+function hapusSemuaData() {
+  if(!confirm('Hapus SEMUA data? Tindakan ini tidak dapat dibatalkan.')) return;
+  db = {pph21:[],pph22:[],pph23:[],ppn:[]}; saveDB();
+  renderTablePPh21(); renderTablePPh22(); renderTablePPh23(); renderTablePPN();
+  updateBadge(); updateDashboard(); renderRiwayat();
+  toast('Semua data dihapus');
+}
+
+// ═══════════════════════════════════════════
+// RESET FORM
+// ═══════════════════════════════════════════
+function resetForm(type) {
+  if(type==='pph21'){
+    ['p21-nama','p21-nip','p21-npwp','p21-kegiatan','p21-instansi','p21-bruto'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('p21-golongan').value='';
+    document.getElementById('p21-tarif').value='';
+    document.getElementById('p21-pph').value='';
+    document.getElementById('p21-neto').value='';
+    document.getElementById('p21-result').style.display='none';
+  }
+  if(type==='pph22'){
+    ['p22-rekanan','p22-npwp','p22-barang','p22-harga','p22-inv'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('p22-dpp').value='';
+    document.getElementById('p22-tarif').value='';
+    document.getElementById('p22-pph').value='';
+    document.getElementById('p22-ppn').value='';
+    document.getElementById('p22-total').value='';
+    document.getElementById('p22-result').style.display='none';
+  }
+  if(type==='pph23'){
+    ['p23-penerima','p23-npwp','p23-pemotong','p23-inv','p23-bruto'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('p23-jenis').value='';
+    document.getElementById('p23-tarif').value='';
+    document.getElementById('p23-pph').value='';
+    document.getElementById('p23-neto').value='';
+    document.getElementById('p23-result').style.display='none';
+  }
+  if(type==='ppn'){
+    ['ppn-faktur','ppn-penjual','ppn-npwp','ppn-pembeli'].forEach(id=>document.getElementById(id).value='');
+    ppnItems=[{id:uid(),nama:'',qty:1,harga:0,diskon:0}];
+    renderPPNItems();
+  }
+}
+
+// ═══════════════════════════════════════════
+// CETAK BUKTI POTONG
+// ═══════════════════════════════════════════
+function cetakBuktiPotong(type) {
+  let html = '', title = '';
+  const instansi = 'LPPM Universitas Mataram';
+  const tgl = new Date().toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
+
+  if(type==='pph21'){
+    const nama=document.getElementById('p21-nama').value||'-';
+    const nip=document.getElementById('p21-nip').value||'-';
+    const npwp=document.getElementById('p21-npwp').value||'-';
+    const kegiatan=document.getElementById('p21-kegiatan').value||'-';
+    const golEl=document.getElementById('p21-golongan');
+    const gol=golEl.options[golEl.selectedIndex]?.text||'-';
+    const bruto=getVal('p21-bruto');
+    const pph=parseFloat(document.getElementById('p21-pph').value.replace(/\./g,'')||0)||Math.round(bruto*(parseFloat((golEl.value||'0|').split('|')[0])||0));
+    const neto=bruto-pph;
+    title='Bukti Pemotongan PPh Pasal 21 Final';
+    html=`
+      <div style="font-family:'DM Sans',sans-serif;max-width:600px">
+        <div style="text-align:center;border-bottom:2px solid #0F2D5E;padding-bottom:12px;margin-bottom:16px">
+          <h2 style="color:#0F2D5E;font-size:1.1rem;margin:0">BUKTI PEMOTONGAN PPh PASAL 21 FINAL</h2>
+          <p style="color:#64748B;font-size:0.8rem;margin:4px 0">PP No. 58/2023 & PMK No. 168/PMK.03/2023</p>
+          <p style="color:#64748B;font-size:0.8rem;margin:0">${instansi} | ${tgl}</p>
+        </div>
+        <table style="width:100%;border-collapse:collapse;font-size:0.85rem">
+          ${[['Nama Penerima',nama],['NIP / NIK',nip],['NPWP',npwp],['Uraian Kegiatan',kegiatan],['Golongan',gol],['Honor Bruto','Rp '+bruto.toLocaleString('id-ID')],['Tarif PPh 21 Final',document.getElementById('p21-tarif').value||'-'],['PPh 21 Yang Dipotong','<strong style="color:#991B1B">Rp '+Math.round(pph).toLocaleString('id-ID')+'</strong>'],['Honor Diterima Bersih','<strong style="color:#0F6E56">Rp '+Math.round(neto).toLocaleString('id-ID')+'</strong>']].map(([k,v])=>`
+          <tr><td style="padding:7px 10px;background:#F8FAFF;border:1px solid #E2E8F0;width:45%;color:#64748B">${k}</td><td style="padding:7px 10px;border:1px solid #E2E8F0">${v}</td></tr>`).join('')}
+        </table>
+        <div style="margin-top:24px;display:flex;justify-content:space-between">
+          <div><p style="font-size:0.8rem;color:#64748B">Penerima Honor</p><div style="margin-top:50px;border-top:1px solid #CBD5E1;padding-top:4px;font-size:0.8rem">(${nama})</div></div>
+          <div><p style="font-size:0.8rem;color:#64748B">Bendahara Pemotong</p><div style="margin-top:50px;border-top:1px solid #CBD5E1;padding-top:4px;font-size:0.8rem">(.........................)</div></div>
+        </div>
+        <p style="font-size:0.72rem;color:#94A3B8;margin-top:16px;text-align:center">PPh 21 Final: tidak dapat dikreditkan di SPT Tahunan penerima. Bukti ini sah sebagai tanda terima pemotongan.</p>
+      </div>`;
+  }
+
+  if(type==='pph22'){
+    const rekanan=document.getElementById('p22-rekanan').value||'-';
+    const inv=document.getElementById('p22-inv').value||'-';
+    const barang=document.getElementById('p22-barang').value||'-';
+    const dpp=document.getElementById('p22-dpp').value||'0';
+    const tarif=document.getElementById('p22-tarif').value||'-';
+    const pph=document.getElementById('p22-pph').value||'0';
+    const ppnV=document.getElementById('p22-ppn').value||'0';
+    const total=document.getElementById('p22-total').value||'0';
+    title='Bukti Pemungutan PPh Pasal 22';
+    html=`
+      <div style="font-family:'DM Sans',sans-serif;max-width:600px">
+        <div style="text-align:center;border-bottom:2px solid #0F6E56;padding-bottom:12px;margin-bottom:16px">
+          <h2 style="color:#0F6E56;font-size:1.1rem;margin:0">BUKTI PEMUNGUTAN PPh PASAL 22</h2>
+          <p style="color:#64748B;font-size:0.8rem;margin:4px 0">PMK No. 41/PMK.010/2022</p>
+          <p style="color:#64748B;font-size:0.8rem;margin:0">${instansi} | ${tgl}</p>
+        </div>
+        <table style="width:100%;border-collapse:collapse;font-size:0.85rem">
+          ${[['No. Invoice',inv],['Nama Rekanan',rekanan],['Jenis Barang',barang],['DPP (Dasar Pengenaan Pajak)','Rp '+dpp],['Tarif PPh 22',tarif],['PPh 22 Terutang','<strong style="color:#991B1B">Rp '+pph+'</strong>'],['PPN (11%)','Rp '+ppnV],['Total Pembayaran','<strong>Rp '+total+'</strong>']].map(([k,v])=>`
+          <tr><td style="padding:7px 10px;background:#F0FDF9;border:1px solid #E2E8F0;width:45%;color:#64748B">${k}</td><td style="padding:7px 10px;border:1px solid #E2E8F0">${v}</td></tr>`).join('')}
+        </table>
+        <div style="margin-top:24px;display:flex;justify-content:space-between">
+          <div><p style="font-size:0.8rem;color:#64748B">Rekanan</p><div style="margin-top:50px;border-top:1px solid #CBD5E1;padding-top:4px;font-size:0.8rem">(${rekanan})</div></div>
+          <div><p style="font-size:0.8rem;color:#64748B">Bendahara Pemungut</p><div style="margin-top:50px;border-top:1px solid #CBD5E1;padding-top:4px;font-size:0.8rem">(.........................)</div></div>
+        </div>
+      </div>`;
+  }
+
+  if(type==='pph23'){
+    const penerima=document.getElementById('p23-penerima').value||'-';
+    const pemotong=document.getElementById('p23-pemotong').value||instansi;
+    const inv=document.getElementById('p23-inv').value||'-';
+    const jenisEl=document.getElementById('p23-jenis');
+    const jenis=jenisEl.options[jenisEl.selectedIndex]?.text||'-';
+    const bruto=getVal('p23-bruto');
+    const tarif=document.getElementById('p23-tarif').value||'-';
+    const pph=document.getElementById('p23-pph').value||'0';
+    const neto=document.getElementById('p23-neto').value||'0';
+    title='Bukti Pemotongan PPh Pasal 23';
+    html=`
+      <div style="font-family:'DM Sans',sans-serif;max-width:600px">
+        <div style="text-align:center;border-bottom:2px solid #92400E;padding-bottom:12px;margin-bottom:16px">
+          <h2 style="color:#92400E;font-size:1.1rem;margin:0">BUKTI PEMOTONGAN PPh PASAL 23</h2>
+          <p style="color:#64748B;font-size:0.8rem;margin:4px 0">UU PPh & PMK No. 141/PMK.03/2015</p>
+          <p style="color:#64748B;font-size:0.8rem;margin:0">${pemotong} | ${tgl}</p>
+        </div>
+        <table style="width:100%;border-collapse:collapse;font-size:0.85rem">
+          ${[['No. Kontrak',inv],['Nama Pemotong',pemotong],['Nama Penerima',penerima],['Jenis Penghasilan',jenis],['Nilai Bruto','Rp '+bruto.toLocaleString('id-ID')],['Tarif PPh 23',tarif],['PPh 23 Yang Dipotong','<strong style="color:#991B1B">Rp '+pph+'</strong>'],['Penghasilan Bersih','<strong style="color:#0F6E56">Rp '+neto+'</strong>']].map(([k,v])=>`
+          <tr><td style="padding:7px 10px;background:#FFFBEB;border:1px solid #E2E8F0;width:45%;color:#64748B">${k}</td><td style="padding:7px 10px;border:1px solid #E2E8F0">${v}</td></tr>`).join('')}
+        </table>
+        <div style="margin-top:24px;display:flex;justify-content:space-between">
+          <div><p style="font-size:0.8rem;color:#64748B">Penerima Penghasilan</p><div style="margin-top:50px;border-top:1px solid #CBD5E1;padding-top:4px;font-size:0.8rem">(${penerima})</div></div>
+          <div><p style="font-size:0.8rem;color:#64748B">Pemotong Pajak</p><div style="margin-top:50px;border-top:1px solid #CBD5E1;padding-top:4px;font-size:0.8rem">(.........................)</div></div>
+        </div>
+      </div>`;
+  }
+
+  if(type==='ppn'){
+    const penjual=document.getElementById('ppn-penjual').value||'-';
+    const pembeli=document.getElementById('ppn-pembeli').value||'-';
+    const faktur=document.getElementById('ppn-faktur').value||'-';
+    const tarif=parseFloat(document.getElementById('ppn-tarif-sel').value);
+    let totalDPP=0;
+    ppnItems.forEach(it=>{ totalDPP += (it.qty||0)*(it.harga||0)-(it.diskon||0); });
+    const ppnV=Math.round(totalDPP*tarif);
+    title='Faktur Pajak PPN';
+    html=`
+      <div style="font-family:'DM Sans',sans-serif;max-width:640px">
+        <div style="text-align:center;border-bottom:2px solid #4C1D95;padding-bottom:12px;margin-bottom:16px">
+          <h2 style="color:#4C1D95;font-size:1.1rem;margin:0">FAKTUR PAJAK</h2>
+          <p style="color:#64748B;font-size:0.8rem;margin:4px 0">No. Faktur: ${faktur}</p>
+          <p style="color:#64748B;font-size:0.8rem;margin:0">Tanggal: ${tgl}</p>
+        </div>
+        <div style="display:flex;gap:20px;margin-bottom:16px;font-size:0.85rem">
+          <div style="flex:1"><strong>PKP Penjual</strong><br>${penjual}</div>
+          <div style="flex:1"><strong>Pembeli</strong><br>${pembeli}</div>
+        </div>
+        <table style="width:100%;border-collapse:collapse;font-size:0.82rem;margin-bottom:12px">
+          <tr style="background:#0F2D5E;color:#fff"><th style="padding:6px 10px;text-align:left">Nama BKP/JKP</th><th style="padding:6px 10px">Qty</th><th style="padding:6px 10px;text-align:right">Harga</th><th style="padding:6px 10px;text-align:right">DPP (Rp)</th></tr>
+          ${ppnItems.filter(it=>it.nama||it.harga).map((it,i)=>`<tr style="background:${i%2?'#F8FAFF':'#fff'}"><td style="padding:6px 10px;border-bottom:1px solid #E2E8F0">${it.nama||'-'}</td><td style="padding:6px 10px;text-align:center;border-bottom:1px solid #E2E8F0">${it.qty}</td><td style="padding:6px 10px;text-align:right;border-bottom:1px solid #E2E8F0">${(it.harga||0).toLocaleString('id-ID')}</td><td style="padding:6px 10px;text-align:right;border-bottom:1px solid #E2E8F0;font-weight:600">${((it.qty||0)*(it.harga||0)-(it.diskon||0)).toLocaleString('id-ID')}</td></tr>`).join('')}
+          <tr style="background:#EDE9FE"><td colspan="3" style="padding:7px 10px;font-weight:600;color:#4C1D95">Total DPP</td><td style="padding:7px 10px;text-align:right;font-weight:700;color:#4C1D95">Rp ${Math.round(totalDPP).toLocaleString('id-ID')}</td></tr>
+          <tr style="background:#4C1D95"><td colspan="3" style="padding:7px 10px;font-weight:600;color:#fff">PPN (${fmtPct(tarif)})</td><td style="padding:7px 10px;text-align:right;font-weight:700;color:#FCD34D">Rp ${ppnV.toLocaleString('id-ID')}</td></tr>
+          <tr style="background:#2E1065"><td colspan="3" style="padding:7px 10px;font-weight:700;color:#fff">TOTAL FAKTUR</td><td style="padding:7px 10px;text-align:right;font-weight:700;color:#6EE7B7;font-size:1rem">Rp ${(totalDPP+ppnV).toLocaleString('id-ID')}</td></tr>
+        </table>
+        <div style="display:flex;justify-content:flex-end;margin-top:20px">
+          <div style="text-align:center"><p style="font-size:0.8rem;color:#64748B">PKP Penjual</p><div style="margin-top:50px;border-top:1px solid #CBD5E1;padding-top:4px;font-size:0.8rem">(${penjual})</div></div>
+        </div>
+      </div>`;
+  }
+
+  document.getElementById('modal-cetak-title').textContent = title;
+  document.getElementById('modal-cetak-body').innerHTML = html;
+  document.getElementById('modal-cetak').classList.add('open');
+}
+
+// ═══════════════════════════════════════════
+// LAPORAN & EKSPOR
+// ═══════════════════════════════════════════
+function cetakLaporan() {
+  const dari = document.getElementById('lap-dari').value;
+  const sampai = document.getElementById('lap-sampai').value;
+  const inst = document.getElementById('lap-instansi').value;
+  const sum = (arr,key) => arr.reduce((s,r)=>s+(r[key]||0),0);
+  const filter = (arr,f) => dari&&sampai ? arr.filter(r=>r.tgl>=dari&&r.tgl<=sampai) : arr;
+  const f21=filter(db.pph21), f22=filter(db.pph22), f23=filter(db.pph23), fp=filter(db.ppn);
+  const html=`
+    <div style="font-family:'DM Sans',sans-serif">
+      <div style="text-align:center;margin-bottom:20px">
+        <h2 style="color:#0F2D5E;font-size:1.2rem">REKAPITULASI PAJAK</h2>
+        <p style="color:#64748B;font-size:0.85rem">${inst}</p>
+        ${dari&&sampai?`<p style="color:#64748B;font-size:0.8rem">Periode: ${dari} s.d. ${sampai}</p>`:''}
+      </div>
+      <table style="width:100%;border-collapse:collapse;font-size:0.85rem">
+        <tr style="background:#0F2D5E;color:#fff"><th style="padding:9px 12px;text-align:left">Jenis Pajak</th><th style="padding:9px 12px">Jml Trx</th><th style="padding:9px 12px;text-align:right">Total Bruto (Rp)</th><th style="padding:9px 12px;text-align:right">Total Pajak (Rp)</th></tr>
+        <tr style="background:#DBEAFE"><td style="padding:8px 12px;border-bottom:1px solid #E2E8F0">PPh Pasal 21 Final</td><td style="padding:8px 12px;text-align:center;border-bottom:1px solid #E2E8F0">${f21.length}</td><td style="padding:8px 12px;text-align:right;border-bottom:1px solid #E2E8F0">${fmtRp(sum(f21,'bruto'))}</td><td style="padding:8px 12px;text-align:right;font-weight:700;color:#991B1B;border-bottom:1px solid #E2E8F0">${fmtRp(sum(f21,'pph'))}</td></tr>
+        <tr style="background:#D1FAE5"><td style="padding:8px 12px;border-bottom:1px solid #E2E8F0">PPh Pasal 22</td><td style="padding:8px 12px;text-align:center;border-bottom:1px solid #E2E8F0">${f22.length}</td><td style="padding:8px 12px;text-align:right;border-bottom:1px solid #E2E8F0">${fmtRp(sum(f22,'dpp'))}</td><td style="padding:8px 12px;text-align:right;font-weight:700;color:#991B1B;border-bottom:1px solid #E2E8F0">${fmtRp(sum(f22,'pph'))}</td></tr>
+        <tr style="background:#FEF3C7"><td style="padding:8px 12px;border-bottom:1px solid #E2E8F0">PPh Pasal 23</td><td style="padding:8px 12px;text-align:center;border-bottom:1px solid #E2E8F0">${f23.length}</td><td style="padding:8px 12px;text-align:right;border-bottom:1px solid #E2E8F0">${fmtRp(sum(f23,'bruto'))}</td><td style="padding:8px 12px;text-align:right;font-weight:700;color:#991B1B;border-bottom:1px solid #E2E8F0">${fmtRp(sum(f23,'pph'))}</td></tr>
+        <tr style="background:#EDE9FE"><td style="padding:8px 12px;border-bottom:1px solid #E2E8F0">PPN</td><td style="padding:8px 12px;text-align:center;border-bottom:1px solid #E2E8F0">${fp.length}</td><td style="padding:8px 12px;text-align:right;border-bottom:1px solid #E2E8F0">${fmtRp(sum(fp,'totalDPP'))}</td><td style="padding:8px 12px;text-align:right;font-weight:700;color:#4C1D95;border-bottom:1px solid #E2E8F0">${fmtRp(sum(fp,'ppn'))}</td></tr>
+        <tr style="background:#0F2D5E;color:#fff"><td style="padding:10px 12px;font-weight:700">GRAND TOTAL</td><td style="padding:10px 12px;text-align:center">${f21.length+f22.length+f23.length+fp.length}</td><td style="padding:10px 12px;text-align:right"></td><td style="padding:10px 12px;text-align:right;font-weight:700;font-size:1rem;color:#FCD34D">${fmtRp(sum(f21,'pph')+sum(f22,'pph')+sum(f23,'pph')+sum(fp,'ppn'))}</td></tr>
+      </table>
+      <p style="font-size:0.72rem;color:#94A3B8;margin-top:16px;text-align:center">Dicetak pada: ${new Date().toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'})}</p>
+    </div>`;
+  document.getElementById('print-laporan').style.display='block';
+  document.getElementById('print-content').innerHTML=html;
+  window.print();
+}
+
+function eksporCSV() {
+  const rows = [['Tanggal','Jenis Pajak','Nama','Uraian','Bruto/DPP','Tarif','Pajak Terutang','Neto']];
+  db.pph21.forEach(r=>rows.push([r.tgl,'PPh 21',r.nama,r.kegiatan,r.bruto,r.tarif,r.pph,r.neto]));
+  db.pph22.forEach(r=>rows.push([r.tgl,'PPh 22',r.rekanan,r.barang,r.dpp,r.tarif,r.pph,r.ppn]));
+  db.pph23.forEach(r=>rows.push([r.tgl,'PPh 23',r.penerima,r.jenisLabel,r.bruto,r.tarif,r.pph,r.neto]));
+  db.ppn.forEach(r=>rows.push([r.tgl,'PPN',r.penjual,r.faktur,r.totalDPP,r.tarif,r.ppn,r.total]));
+  const csv = rows.map(r=>r.map(v=>`"${v||''}"`).join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,\uFEFF'+encodeURIComponent(csv);
+  a.download = 'sipajar_export_'+new Date().toISOString().split('T')[0]+'.csv';
+  a.click();
+  toast('✅ CSV berhasil diunduh');
+}
+
+// ═══════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════
+document.getElementById('p21-tgl').value = today();
+document.getElementById('p22-tgl').value = today();
+document.getElementById('p23-tgl').value = today();
+document.getElementById('ppn-tgl').value = today();
+initPPNItems();
+updateDashboard();
+updateBadge();
+</script>
+</body>
+</html>
